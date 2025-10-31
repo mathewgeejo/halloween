@@ -112,9 +112,14 @@ const TreasureHunt = ({ isOpen, onToggle, foundTreasures, onTreasureFound, compl
         whileTap={{ scale: 0.95 }}
         onClick={onToggle}
         animate={{
-          x: isOpen ? -400 : 0,
+          x: isOpen ? -384 : 0,
         }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        transition={{ 
+          type: 'spring', 
+          stiffness: 200, 
+          damping: 25,
+          mass: 0.8,
+        }}
       >
         <motion.div
           animate={{ rotate: isOpen ? 180 : 0 }}
@@ -129,14 +134,19 @@ const TreasureHunt = ({ isOpen, onToggle, foundTreasures, onTreasureFound, compl
       </motion.button>
 
       {/* Panel */}
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {isOpen && (
           <motion.div
             className="fixed right-0 top-0 bottom-0 w-96 bg-gradient-to-b from-gray-900 via-haunted-black to-gray-900 border-l-4 border-toxic z-20 overflow-y-auto"
-            initial={{ x: 400 }}
-            animate={{ x: 0 }}
-            exit={{ x: 400 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            initial={{ x: 400, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: 400, opacity: 0 }}
+            transition={{ 
+              type: 'spring', 
+              stiffness: 200, 
+              damping: 25,
+              mass: 0.8,
+            }}
             style={{
               boxShadow: '0 0 60px rgba(57, 255, 20, 0.4)',
             }}

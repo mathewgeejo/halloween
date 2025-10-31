@@ -1,129 +1,10 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 
-// Simple CSS-based floating pumpkin
-const FloatingPumpkin = ({ position, onClick, isCollected, index }) => {
-  if (isCollected) return null
-
-  return (
-    <motion.div
-      className="absolute cursor-pointer"
-      style={{
-        left: `${position[0]}%`,
-        top: `${position[1]}%`,
-        fontSize: '3rem',
-      }}
-      onClick={onClick}
-      animate={{
-        y: [0, -20, 0],
-        rotate: [0, 10, 0, -10, 0],
-      }}
-      transition={{
-        duration: 3 + index * 0.5,
-        repeat: Infinity,
-        ease: "easeInOut",
-      }}
-      whileHover={{ scale: 1.3 }}
-    >
-      🎃
-    </motion.div>
-  )
-}
-
-// Simple CSS-based treasure crystal
-const TreasureItem = ({ position, icon, onClick, isCollected, index }) => {
-  if (isCollected) return null
-
-  return (
-    <motion.div
-      className="absolute cursor-pointer text-4xl"
-      style={{
-        left: `${position[0]}%`,
-        top: `${position[1]}%`,
-        filter: 'drop-shadow(0 0 10px currentColor)',
-      }}
-      onClick={onClick}
-      animate={{
-        y: [0, -15, 0],
-        scale: [1, 1.1, 1],
-      }}
-      transition={{
-        duration: 2.5 + index * 0.3,
-        repeat: Infinity,
-        ease: "easeInOut",
-      }}
-      whileHover={{ scale: 1.4, rotate: 360 }}
-    >
-      {icon}
-    </motion.div>
-  )
-}
-
-// Floating bat emoji
-const BatEmoji = ({ index }) => {
-  return (
-    <motion.div
-      className="absolute text-2xl pointer-events-none"
-      style={{
-        left: `${Math.random() * 100}%`,
-        top: `${Math.random() * 60}%`,
-      }}
-      animate={{
-        x: [0, (Math.random() - 0.5) * 200],
-        y: [0, (Math.random() - 0.5) * 100],
-        rotate: [0, 360],
-      }}
-      transition={{
-        duration: 10 + index * 2,
-        repeat: Infinity,
-        ease: "linear",
-      }}
-    >
-      🦇
-    </motion.div>
-  )
-}
-
-// Floating ghost emoji
-const GhostEmoji = ({ index }) => {
-  return (
-    <motion.div
-      className="absolute text-2xl pointer-events-none opacity-60"
-      style={{
-        left: `${Math.random() * 100}%`,
-        top: `${Math.random() * 100}%`,
-      }}
-      animate={{
-        x: [(Math.random() - 0.5) * 100, (Math.random() - 0.5) * 100],
-        y: [(Math.random() - 0.5) * 100, (Math.random() - 0.5) * 100],
-        opacity: [0.3, 0.7, 0.3],
-      }}
-      transition={{
-        duration: 8 + index * 1.5,
-        repeat: Infinity,
-        ease: "easeInOut",
-      }}
-    >
-      👻
-    </motion.div>
-  )
-}
-
 // Main Haunted World Component
 const HauntedWorld = ({ mousePosition, isWitchingHour, onTreatCollected, collectedTreats, onTreasureFound, foundTreasures }) => {
   const [lightning, setLightning] = useState(false)
   
-  // Convert to percentage-based positions for 2D layout
-  const pumpkinPositions = [
-    [20, 30],
-    [75, 25],
-    [30, 60],
-    [80, 70],
-    [50, 20],
-    [15, 75],
-    [85, 45],
-  ]
-
   // Treasure hunt positions with emojis
   const treasurePositions = [
     { id: 'hunt-1', pos: [15, 50], icon: '🐈‍⬛' },
@@ -138,21 +19,14 @@ const HauntedWorld = ({ mousePosition, isWitchingHour, onTreatCollected, collect
   useEffect(() => {
     // Random lightning flashes
     const lightningInterval = setInterval(() => {
-      if (Math.random() > 0.7) {
+      if (Math.random() > 0.8) {
         setLightning(true)
-        setTimeout(() => setLightning(false), 200)
+        setTimeout(() => setLightning(false), 150)
       }
-    }, 3000 + Math.random() * 5000)
+    }, 5000 + Math.random() * 5000)
 
     return () => clearInterval(lightningInterval)
   }, [])
-
-  const handlePumpkinClick = (index) => {
-    const treatId = `pumpkin-${index}`
-    if (!collectedTreats.includes(treatId)) {
-      onTreatCollected(treatId)
-    }
-  }
 
   const handleTreasureClick = (treasureId) => {
     if (!foundTreasures.includes(treasureId)) {
@@ -162,34 +36,15 @@ const HauntedWorld = ({ mousePosition, isWitchingHour, onTreatCollected, collect
 
   return (
     <div className="relative w-full h-full">
-      {/* Enhanced Background with stars and depth */}
+      {/* Simple Static Background */}
       <div
-        className={`absolute inset-0 transition-all duration-1000 ${
+        className={`absolute inset-0 transition-colors duration-1000 ${
           isWitchingHour
             ? 'bg-gradient-to-b from-indigo-950 via-purple-950 to-black'
             : 'bg-gradient-to-b from-purple-900 via-indigo-900 to-black'
         }`}
       >
-        {/* OPTIMIZED: Stars background - Reduced from 100 to 30 */}
-        <div className="absolute inset-0 overflow-hidden">
-          {[...Array(30)].map((_, i) => (
-            <div
-              key={`star-${i}`}
-              className="absolute bg-white rounded-full animate-pulse"
-              style={{
-                width: Math.random() * 3 + 1 + 'px',
-                height: Math.random() * 3 + 1 + 'px',
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 60}%`,
-                opacity: Math.random() * 0.8 + 0.2,
-                animationDuration: `${Math.random() * 3 + 2}s`,
-                animationDelay: `${Math.random() * 2}s`,
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Distant mountains silhouette */}
+        {/* Static mountains silhouette */}
         <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-black via-gray-900 to-transparent opacity-80">
           <svg className="absolute bottom-0 w-full" viewBox="0 0 1440 320" preserveAspectRatio="none">
             <path
@@ -200,135 +55,53 @@ const HauntedWorld = ({ mousePosition, isWitchingHour, onTreatCollected, collect
           </svg>
         </div>
 
-        {/* OPTIMIZED: Distant trees - Reduced from 15 to 8 */}
-        <div className="absolute bottom-0 left-0 right-0 h-48 flex items-end justify-around opacity-60">
-          {[...Array(8)].map((_, i) => (
-            <div
-              key={`tree-${i}`}
-              className="bg-black opacity-80"
-              style={{
-                width: Math.random() * 40 + 20 + 'px',
-                height: Math.random() * 100 + 80 + 'px',
-                clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)',
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Ground fog - simplified */}
+        {/* Ground fog - static */}
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-500 to-transparent opacity-20" />
       </div>
 
-      {/* OPTIMIZED: Removed excessive fog layers - keeping just one simple one */}
+      {/* Moon - static */}
       <div
-        className="absolute inset-0 pointer-events-none opacity-30"
-        style={{
-          background: 'radial-gradient(circle at 50% 100%, rgba(200, 200, 200, 0.1) 0%, transparent 70%)',
-        }}
-      />
-
-      {/* Moon */}
-      <motion.div
         className="absolute top-20 right-32 w-32 h-32 rounded-full bg-gradient-to-br from-yellow-100 to-orange-200 shadow-2xl"
         style={{
           boxShadow: `0 0 60px ${isWitchingHour ? 'rgba(200, 200, 255, 0.8)' : 'rgba(255, 220, 150, 0.6)'}`,
-          transform: `translate(${mousePosition.x * 20}px, ${mousePosition.y * 20}px)`,
         }}
-        animate={{
-          scale: [1, 1.05, 1],
-        }}
-        transition={{ duration: 4, repeat: Infinity }}
       />
 
-      {/* 2D Scene - Floating Emojis (replacing 3D canvas) */}
-      <div className="absolute inset-0 overflow-hidden">
-        {/* Floating Bats */}
-        {[...Array(5)].map((_, i) => (
-          <BatEmoji key={`bat-${i}`} index={i} />
-        ))}
-
-        {/* Floating Ghosts */}
-        {[...Array(6)].map((_, i) => (
-          <GhostEmoji key={`ghost-${i}`} index={i} />
-        ))}
-
-        {/* Floating collectible pumpkins */}
-        {pumpkinPositions.map((pos, i) => (
-          <FloatingPumpkin
-            key={`pumpkin-${i}`}
-            position={pos}
-            onClick={() => handlePumpkinClick(i)}
-            isCollected={collectedTreats.includes(`pumpkin-${i}`)}
-            index={i}
-          />
-        ))}
-
-        {/* Treasure hunt items */}
-        {treasurePositions.map((treasure, i) => (
-          <TreasureItem
-            key={treasure.id}
-            position={treasure.pos}
-            icon={treasure.icon}
-            onClick={() => handleTreasureClick(treasure.id)}
-            isCollected={foundTreasures && foundTreasures.includes(treasure.id)}
-            index={i}
-          />
-        ))}
+      {/* Treasure hunt items - ONLY clickable items, no floating animations */}
+      <div className="absolute inset-0">
+        {treasurePositions.map((treasure) => {
+          const isFound = foundTreasures && foundTreasures.includes(treasure.id)
+          if (isFound) return null
+          
+          return (
+            <button
+              key={treasure.id}
+              className="absolute text-5xl cursor-pointer hover:scale-125 transition-transform duration-200"
+              style={{
+                left: `${treasure.pos[0]}%`,
+                top: `${treasure.pos[1]}%`,
+                filter: 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.5))',
+              }}
+              onClick={() => handleTreasureClick(treasure.id)}
+            >
+              {treasure.icon}
+            </button>
+          )
+        })}
       </div>
 
       {/* Lightning flash overlay */}
       {lightning && (
-        <motion.div
+        <div
           className="absolute inset-0 bg-white pointer-events-none"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0, 0.4, 0] }}
-          transition={{ duration: 0.2 }}
+          style={{ opacity: 0.4 }}
         />
       )}
 
-      {/* Foreground decorative elements */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {/* OPTIMIZED: Floating embers - Reduced from 30 to 15 */}
-        {[...Array(15)].map((_, i) => (
-          <motion.div
-            key={`ember-${i}`}
-            className="absolute w-1 h-1 bg-pumpkin rounded-full"
-            style={{
-              left: `${Math.random() * 100}%`,
-              bottom: '-10px',
-              boxShadow: '0 0 10px rgba(255, 107, 53, 0.8)',
-            }}
-            animate={{
-              y: [-10, -window.innerHeight - 50],
-              x: [0, (Math.random() - 0.5) * 100],
-              opacity: [0, 1, 1, 0],
-              scale: [0, 1, 1, 0],
-            }}
-            transition={{
-              duration: 8 + Math.random() * 4,
-              repeat: Infinity,
-              delay: Math.random() * 5,
-              ease: 'linear',
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Title with spooky castle silhouette */}
-      <motion.div
-        className="absolute top-1/4 left-1/2 transform -translate-x-1/2 text-center pointer-events-none z-10"
-        initial={{ opacity: 0, y: -50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 2, delay: 0.5 }}
-      >
-        {/* Castle silhouette behind title */}
-        <motion.div
-          className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-24 opacity-30"
-          animate={{
-            opacity: [0.2, 0.4, 0.2],
-          }}
-          transition={{ duration: 5, repeat: Infinity }}
-        >
+      {/* Title with castle silhouette */}
+      <div className="absolute top-1/4 left-1/2 transform -translate-x-1/2 text-center pointer-events-none z-10">
+        {/* Castle silhouette behind title - STATIC */}
+        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-24 opacity-30">
           <svg width="400" height="200" viewBox="0 0 400 200" className="text-black">
             <path
               fill="currentColor"
@@ -338,30 +111,20 @@ const HauntedWorld = ({ mousePosition, isWitchingHour, onTreatCollected, collect
             <rect x="160" y="80" width="20" height="40" fill="#ff6b35" opacity="0.6" />
             <rect x="220" y="120" width="20" height="30" fill="#ff6b35" opacity="0.6" />
           </svg>
-        </motion.div>
+        </div>
 
-        <motion.h1
-          className="text-7xl md:text-9xl font-creepster text-pumpkin animate-glow mb-4 relative z-10"
+        <h1
+          className="text-7xl md:text-9xl font-creepster text-pumpkin mb-4 relative z-10"
           style={{
             textShadow: '0 0 20px rgba(255, 107, 53, 0.8), 0 0 40px rgba(255, 107, 53, 0.6), 0 5px 10px rgba(0, 0, 0, 0.8)',
           }}
-          animate={{
-            y: [0, -10, 0],
-          }}
-          transition={{ duration: 4, repeat: Infinity }}
         >
           THE HAUNTED REALM
-        </motion.h1>
-        <motion.p
-          className="text-2xl md:text-3xl font-fredericka text-ghost"
-          animate={{
-            opacity: [0.7, 1, 0.7],
-          }}
-          transition={{ duration: 3, repeat: Infinity }}
-        >
+        </h1>
+        <p className="text-2xl md:text-3xl font-fredericka text-ghost">
           Solve puzzles, find treasures, escape the curse...
-        </motion.p>
-      </motion.div>
+        </p>
+      </div>
 
       {/* Vignette effect */}
       <div className="absolute inset-0 pointer-events-none vignette" />

@@ -26,9 +26,14 @@ const SidePanel = ({ isOpen, onToggle, collectedTreats, treatCount }) => {
         whileTap={{ scale: 0.95 }}
         onClick={onToggle}
         animate={{
-          x: isOpen ? 400 : 0,
+          x: isOpen ? 384 : 0,
         }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        transition={{ 
+          type: 'spring', 
+          stiffness: 200, 
+          damping: 25,
+          mass: 0.8,
+        }}
       >
         <motion.div
           animate={{ rotate: isOpen ? 180 : 0 }}
@@ -42,14 +47,19 @@ const SidePanel = ({ isOpen, onToggle, collectedTreats, treatCount }) => {
       </motion.button>
 
       {/* Panel */}
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {isOpen && (
           <motion.div
             className="fixed left-0 top-0 bottom-0 w-96 bg-gradient-to-b from-gray-900 via-haunted-black to-gray-900 border-r-4 border-pumpkin z-20 overflow-y-auto"
-            initial={{ x: -400 }}
-            animate={{ x: 0 }}
-            exit={{ x: -400 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            initial={{ x: -400, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -400, opacity: 0 }}
+            transition={{ 
+              type: 'spring', 
+              stiffness: 200, 
+              damping: 25,
+              mass: 0.8,
+            }}
             style={{
               boxShadow: '0 0 60px rgba(255, 107, 53, 0.4)',
             }}

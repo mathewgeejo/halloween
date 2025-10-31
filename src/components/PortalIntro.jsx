@@ -1,60 +1,5 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Canvas, useFrame } from '@react-three/fiber'
-import { Sphere, MeshDistortMaterial } from '@react-three/drei'
-import * as THREE from 'three'
-
-// Portal 3D Component
-const Portal3D = ({ onComplete }) => {
-  const meshRef = useRef()
-  const [intensity, setIntensity] = useState(1)
-
-  useFrame((state) => {
-    const time = state.clock.getElapsedTime()
-    
-    if (meshRef.current) {
-      meshRef.current.rotation.z = time * 0.5
-      meshRef.current.scale.setScalar(1 + Math.sin(time * 2) * 0.1)
-    }
-
-    // Increase intensity over time
-    if (time < 4) {
-      setIntensity(1 + time * 0.5)
-    }
-
-    // Trigger warp effect at 4 seconds
-    if (time > 4 && time < 4.1) {
-      onComplete()
-    }
-  })
-
-  return (
-    <group>
-      <Sphere ref={meshRef} args={[2, 64, 64]}>
-        <MeshDistortMaterial
-          color="#ff6d00"
-          attach="material"
-          distort={0.6}
-          speed={2}
-          roughness={0}
-          metalness={0.8}
-          emissive="#9d4edd"
-          emissiveIntensity={intensity}
-        />
-      </Sphere>
-      
-      {/* Outer glow ring */}
-      <Sphere args={[2.5, 32, 32]}>
-        <meshBasicMaterial
-          color="#9d4edd"
-          transparent
-          opacity={0.3}
-          side={THREE.BackSide}
-        />
-      </Sphere>
-    </group>
-  )
-}
 
 // Main Portal Intro Component
 const PortalIntro = ({ onComplete }) => {
@@ -62,24 +7,26 @@ const PortalIntro = ({ onComplete }) => {
   const [startWarp, setStartWarp] = useState(false)
 
   useEffect(() => {
-    // Darkness phase (1 second)
-    const timer1 = setTimeout(() => setPhase('static'), 1000)
+    // Darkness phase (1.5 seconds)
+    const timer1 = setTimeout(() => setPhase('static'), 1500)
     
-    // Static flicker phase (1.5 seconds)
-    const timer2 = setTimeout(() => setPhase('portal'), 2500)
+    // Static flicker phase (2 seconds)
+    const timer2 = setTimeout(() => setPhase('portal'), 3500)
+    
+    // Portal phase (4 seconds)
+    const timer3 = setTimeout(() => {
+      setStartWarp(true)
+      setTimeout(() => {
+        onComplete()
+      }, 2000)
+    }, 7500)
     
     return () => {
       clearTimeout(timer1)
       clearTimeout(timer2)
+      clearTimeout(timer3)
     }
   }, [])
-
-  const handleWarp = () => {
-    setStartWarp(true)
-    setTimeout(() => {
-      onComplete()
-    }, 2000)
-  }
 
   return (
     <motion.div
@@ -134,7 +81,10 @@ const PortalIntro = ({ onComplete }) => {
         >
           {/* Fog layers */}
           <motion.div
-            className="absolute inset-0 fog-layer"
+            className="absolute inset-0"
+            style={{
+              background: 'radial-gradient(circle, rgba(157, 78, 221, 0.3) 0%, transparent 70%)',
+            }}
             animate={{
               opacity: [0.3, 0.6, 0.3],
               scale: [1, 1.2, 1],
@@ -142,24 +92,58 @@ const PortalIntro = ({ onComplete }) => {
             transition={{ duration: 4, repeat: Infinity }}
           />
 
-          {/* 3D Portal */}
-          <div className="absolute inset-0">
-            <Canvas camera={{ position: [0, 0, 8], fov: 60 }}>
-              <ambientLight intensity={0.5} />
-              <pointLight position={[10, 10, 10]} intensity={1} />
-              <Portal3D onComplete={handleWarp} />
-            </Canvas>
+          {/* 2D Portal Effect - CSS based */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <motion.div
+              className="relative w-64 h-64 rounded-full"
+              style={{
+                background: 'radial-gradient(circle, #ff6d00 0%, #9d4edd 50%, transparent 100%)',
+                boxShadow: '0 0 100px rgba(157, 78, 221, 0.8), 0 0 200px rgba(255, 109, 0, 0.6)',
+              }}
+              animate={{
+                scale: [1, 1.2, 1],
+                rotate: [0, 360],
+              }}
+              transition={{
+                scale: { duration: 3, repeat: Infinity, ease: "easeInOut" },
+                rotate: { duration: 10, repeat: Infinity, ease: "linear" },
+              }}
+            >
+              {/* Inner portal rings */}
+              {[...Array(3)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute inset-0 rounded-full border-4"
+                  style={{
+                    borderColor: i % 2 === 0 ? '#ff6d00' : '#9d4edd',
+                    margin: `${i * 20}px`,
+                  }}
+                  animate={{
+                    rotate: i % 2 === 0 ? [0, 360] : [360, 0],
+                    opacity: [0.3, 1, 0.3],
+                  }}
+                  transition={{
+                    rotate: { duration: 5 - i, repeat: Infinity, ease: "linear" },
+                    opacity: { duration: 2, repeat: Infinity, ease: "easeInOut" },
+                  }}
+                />
+              ))}
+            </motion.div>
           </div>
 
           {/* Portal text */}
           <motion.div
             className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
+            style={{ paddingTop: '350px' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1, duration: 2 }}
           >
             <motion.h1
-              className="text-6xl font-creepster text-pumpkin mb-4 text-glow-strong"
+              className="text-6xl font-creepster text-pumpkin mb-4"
+              style={{
+                textShadow: '0 0 20px rgba(255, 107, 53, 0.8), 0 0 40px rgba(255, 107, 53, 0.6)',
+              }}
               animate={{
                 scale: [1, 1.05, 1],
               }}

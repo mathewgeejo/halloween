@@ -6,6 +6,8 @@ import MonsterEncounter from './components/MonsterEncounter'
 import SidePanel from './components/SidePanel'
 import TrickOrTreatButton from './components/TrickOrTreatButton'
 import AudioManager from './components/AudioManager'
+import GamePuzzle from './components/GamePuzzle'
+import TreasureHunt from './components/TreasureHunt'
 import './App.css'
 
 function App() {
@@ -15,12 +17,28 @@ function App() {
   const [showPanel, setShowPanel] = useState(false)
   const [isWitchingHour, setIsWitchingHour] = useState(false)
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+  const [currentPuzzle, setCurrentPuzzle] = useState(null)
+  const [completedPuzzles, setCompletedPuzzles] = useState([])
+  const [foundTreasures, setFoundTreasures] = useState([])
+  const [showTreasureHunt, setShowTreasureHunt] = useState(false)
 
   useEffect(() => {
     // Load collected treats from localStorage
     const saved = localStorage.getItem('haunted-treats')
     if (saved) {
       setCollectedTreats(JSON.parse(saved))
+    }
+
+    // Load completed puzzles
+    const savedPuzzles = localStorage.getItem('completed-puzzles')
+    if (savedPuzzles) {
+      setCompletedPuzzles(JSON.parse(savedPuzzles))
+    }
+
+    // Load found treasures
+    const savedTreasures = localStorage.getItem('found-treasures')
+    if (savedTreasures) {
+      setFoundTreasures(JSON.parse(savedTreasures))
     }
 
     // Check time for witching hour
@@ -54,8 +72,40 @@ function App() {
 
   const handleEncounter = () => {
     const monsters = ['witch', 'pumpkin-king', 'hollow-child', 'collector', 'shadow-weaver']
-    const randomMonster = monsters[Math.floor(Math.random() * monsters.length)]
-    setCurrentMonster(randomMonster)
+    const availableMonsters = monsters.filter(m => !completedPuzzles.includes(m))
+    
+    if (availableMonsters.length === 0) {
+      // All puzzles completed, show random encounter
+      const randomMonster = monsters[Math.floor(Math.random() * monsters.length)]
+      setCurrentMonster(randomMonster)
+    } else {
+      // Show puzzle for unsolved monster
+      const randomMonster = availableMonsters[Math.floor(Math.random() * availableMonsters.length)]
+      setCurrentPuzzle(randomMonster)
+    }
+  }
+
+  const handlePuzzleComplete = (monster, reward) => {
+    const newCompleted = [...completedPuzzles, monster]
+    setCompletedPuzzles(newCompleted)
+    localStorage.setItem('completed-puzzles', JSON.stringify(newCompleted))
+    
+    // Add reward to treats
+    const rewardId = `puzzle-${monster}`
+    const newTreats = [...collectedTreats, rewardId]
+    setCollectedTreats(newTreats)
+    localStorage.setItem('haunted-treats', JSON.stringify(newTreats))
+    
+    setCurrentPuzzle(null)
+    setCurrentMonster(monster)
+  }
+
+  const handleTreasureFound = (treasureId) => {
+    if (!foundTreasures.includes(treasureId)) {
+      const newTreasures = [...foundTreasures, treasureId]
+      setFoundTreasures(newTreasures)
+      localStorage.setItem('found-treasures', JSON.stringify(newTreasures))
+    }
   }
 
   return (
@@ -85,15 +135,29 @@ function App() {
               isWitchingHour={isWitchingHour}
               onTreatCollected={handleTreatCollected}
               collectedTreats={collectedTreats}
+              onTreasureFound={handleTreasureFound}
+              foundTreasures={foundTreasures}
             />
 
-            <TrickOrTreatButton onClick={handleEncounter} />
+            <TrickOrTreatButton 
+              onClick={handleEncounter}
+              completedPuzzles={completedPuzzles.length}
+              totalPuzzles={5}
+            />
 
             <SidePanel 
               isOpen={showPanel}
               onToggle={() => setShowPanel(!showPanel)}
               collectedTreats={collectedTreats}
               treatCount={collectedTreats.length}
+            />
+
+            <TreasureHunt
+              isOpen={showTreasureHunt}
+              onToggle={() => setShowTreasureHunt(!showTreasureHunt)}
+              foundTreasures={foundTreasures}
+              onTreasureFound={handleTreasureFound}
+              completedPuzzles={completedPuzzles}
             />
 
             {/* Day/Night Mode Toggle */}
@@ -110,7 +174,17 @@ function App() {
       </AnimatePresence>
 
       <AnimatePresence>
-        {currentMonster && (
+        {currentPuzzle && (
+          <GamePuzzle
+            monster={currentPuzzle}
+            onClose={() => setCurrentPuzzle(null)}
+            onComplete={handlePuzzleComplete}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {currentMonster && !currentPuzzle && (
           <MonsterEncounter
             monster={currentMonster}
             onClose={() => setCurrentMonster(null)}

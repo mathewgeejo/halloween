@@ -72,6 +72,45 @@ const FloatingPumpkin = ({ position, onClick, isCollected }) => {
   )
 }
 
+// Treasure Item Component
+const TreasureItem = ({ position, color, onClick, isCollected }) => {
+  const meshRef = useRef()
+
+  useFrame((state) => {
+    if (meshRef.current && !isCollected) {
+      const time = state.clock.getElapsedTime()
+      meshRef.current.position.y = position[1] + Math.sin(time * 1.5 + position[0]) * 0.4
+      meshRef.current.rotation.y += 0.02
+      meshRef.current.rotation.z = Math.sin(time) * 0.1
+    }
+  })
+
+  if (isCollected) return null
+
+  return (
+    <group ref={meshRef} position={position} onClick={onClick}>
+      {/* Outer glow */}
+      <Sphere args={[0.4, 16, 16]}>
+        <meshBasicMaterial
+          color={color}
+          transparent
+          opacity={0.3}
+        />
+      </Sphere>
+      {/* Inner crystal */}
+      <Box args={[0.3, 0.3, 0.3]}>
+        <meshStandardMaterial
+          color={color}
+          emissive={color}
+          emissiveIntensity={0.8}
+          metalness={0.9}
+          roughness={0.1}
+        />
+      </Box>
+    </group>
+  )
+}
+
 // Ghost Particle System
 const GhostParticle = ({ index }) => {
   const meshRef = useRef()
@@ -104,7 +143,7 @@ const GhostParticle = ({ index }) => {
 }
 
 // Main Haunted World Component
-const HauntedWorld = ({ mousePosition, isWitchingHour, onTreatCollected, collectedTreats }) => {
+const HauntedWorld = ({ mousePosition, isWitchingHour, onTreatCollected, collectedTreats, onTreasureFound, foundTreasures }) => {
   const [lightning, setLightning] = useState(false)
   const [pumpkinPositions] = useState([
     [-8, 2, -5],
@@ -115,6 +154,17 @@ const HauntedWorld = ({ mousePosition, isWitchingHour, onTreatCollected, collect
     [-12, 3, 2],
     [12, 4, -6],
   ])
+
+  // Treasure hunt positions matching the quest data
+  const treasurePositions = [
+    { id: 'hunt-1', pos: [-12, 3, 2], color: '#9d4edd', icon: '🐈‍⬛' },
+    { id: 'hunt-2', pos: [0, 5, -8], color: '#ff6b35', icon: '🏮' },
+    { id: 'hunt-3', pos: [12, 4, -6], color: '#e0e0e0', icon: '🎵' },
+    { id: 'hunt-4', pos: [-5, 4, 5], color: '#ffd700', icon: '💀' },
+    { id: 'hunt-5', pos: [10, 3, -3], color: '#39ff14', icon: '💎' },
+    { id: 'hunt-6', pos: [-8, 2, -5], color: '#9d4edd', icon: '🪶' },
+    { id: 'hunt-7', pos: [8, 2.5, 7], color: '#8b0000', icon: '👁️' },
+  ]
 
   useEffect(() => {
     // Random lightning flashes
@@ -135,16 +185,85 @@ const HauntedWorld = ({ mousePosition, isWitchingHour, onTreatCollected, collect
     }
   }
 
+  const handleTreasureClick = (treasureId) => {
+    if (!foundTreasures.includes(treasureId)) {
+      onTreasureFound(treasureId)
+    }
+  }
+
   return (
     <div className="relative w-full h-full">
-      {/* Background gradient */}
+      {/* Enhanced Background with stars and depth */}
       <div
         className={`absolute inset-0 transition-all duration-1000 ${
           isWitchingHour
             ? 'bg-gradient-to-b from-indigo-950 via-purple-950 to-black'
             : 'bg-gradient-to-b from-purple-900 via-indigo-900 to-black'
         }`}
-      />
+      >
+        {/* Stars background */}
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(100)].map((_, i) => (
+            <motion.div
+              key={`star-${i}`}
+              className="absolute bg-white rounded-full"
+              style={{
+                width: Math.random() * 3 + 1 + 'px',
+                height: Math.random() * 3 + 1 + 'px',
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 60}%`,
+                opacity: Math.random() * 0.8 + 0.2,
+              }}
+              animate={{
+                opacity: [Math.random() * 0.3 + 0.2, Math.random() * 0.8 + 0.2, Math.random() * 0.3 + 0.2],
+                scale: [1, 1.5, 1],
+              }}
+              transition={{
+                duration: Math.random() * 3 + 2,
+                repeat: Infinity,
+                delay: Math.random() * 2,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Distant mountains silhouette */}
+        <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-black via-gray-900 to-transparent opacity-80">
+          <svg className="absolute bottom-0 w-full" viewBox="0 0 1440 320" preserveAspectRatio="none">
+            <path
+              fill={isWitchingHour ? "#1a1a2e" : "#2d1b4e"}
+              fillOpacity="1"
+              d="M0,160L48,144C96,128,192,96,288,112C384,128,480,192,576,192C672,192,768,128,864,117.3C960,107,1056,149,1152,165.3C1248,181,1344,171,1392,165.3L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+            />
+          </svg>
+          <svg className="absolute bottom-0 w-full" viewBox="0 0 1440 320" preserveAspectRatio="none">
+            <path
+              fill={isWitchingHour ? "#0d0d1e" : "#1a0d2e"}
+              fillOpacity="0.8"
+              d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,208C960,192,1056,160,1152,154.7C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+            />
+          </svg>
+        </div>
+
+        {/* Distant trees */}
+        <div className="absolute bottom-0 left-0 right-0 h-48 flex items-end justify-around opacity-60">
+          {[...Array(15)].map((_, i) => (
+            <div
+              key={`tree-${i}`}
+              className="bg-black opacity-80"
+              style={{
+                width: Math.random() * 40 + 20 + 'px',
+                height: Math.random() * 100 + 80 + 'px',
+                clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)',
+                transform: `translateX(${(Math.random() - 0.5) * 50}px)`,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Ground fog */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-500 via-gray-700 to-transparent opacity-20 blur-xl" />
+      </div>
 
       {/* Animated fog layers */}
       <motion.div
@@ -217,6 +336,17 @@ const HauntedWorld = ({ mousePosition, isWitchingHour, onTreatCollected, collect
             />
           ))}
 
+          {/* Treasure hunt items */}
+          {treasurePositions.map((treasure, i) => (
+            <TreasureItem
+              key={treasure.id}
+              position={treasure.pos}
+              color={treasure.color}
+              onClick={() => handleTreasureClick(treasure.id)}
+              isCollected={foundTreasures && foundTreasures.includes(treasure.id)}
+            />
+          ))}
+
           {/* Ghost particles */}
           {[...Array(15)].map((_, i) => (
             <GhostParticle key={`ghost-${i}`} index={i} />
@@ -272,15 +402,34 @@ const HauntedWorld = ({ mousePosition, isWitchingHour, onTreatCollected, collect
         ))}
       </div>
 
-      {/* Title */}
+      {/* Title with spooky castle silhouette */}
       <motion.div
         className="absolute top-1/4 left-1/2 transform -translate-x-1/2 text-center pointer-events-none z-10"
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 2, delay: 0.5 }}
       >
+        {/* Castle silhouette behind title */}
+        <motion.div
+          className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-24 opacity-30"
+          animate={{
+            opacity: [0.2, 0.4, 0.2],
+          }}
+          transition={{ duration: 5, repeat: Infinity }}
+        >
+          <svg width="400" height="200" viewBox="0 0 400 200" className="text-black">
+            <path
+              fill="currentColor"
+              d="M50,180 L50,100 L70,100 L70,80 L90,80 L90,60 L110,60 L110,100 L140,100 L140,60 L160,60 L160,40 L180,40 L180,60 L200,60 L200,100 L230,100 L230,60 L250,60 L250,80 L270,80 L270,100 L290,100 L290,180 Z"
+            />
+            <rect x="100" y="120" width="20" height="30" fill="#ff6b35" opacity="0.6" />
+            <rect x="160" y="80" width="20" height="40" fill="#ff6b35" opacity="0.6" />
+            <rect x="220" y="120" width="20" height="30" fill="#ff6b35" opacity="0.6" />
+          </svg>
+        </motion.div>
+
         <motion.h1
-          className="text-7xl md:text-9xl font-creepster text-pumpkin animate-glow mb-4"
+          className="text-7xl md:text-9xl font-creepster text-pumpkin animate-glow mb-4 relative z-10"
           style={{
             textShadow: '0 0 20px rgba(255, 107, 53, 0.8), 0 0 40px rgba(255, 107, 53, 0.6), 0 5px 10px rgba(0, 0, 0, 0.8)',
           }}
@@ -298,7 +447,7 @@ const HauntedWorld = ({ mousePosition, isWitchingHour, onTreatCollected, collect
           }}
           transition={{ duration: 3, repeat: Infinity }}
         >
-          Where nightmares come alive...
+          Solve puzzles, find treasures, escape the curse...
         </motion.p>
       </motion.div>
 

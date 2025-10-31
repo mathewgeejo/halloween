@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { useState } from 'react'
 
-const TrickOrTreatButton = ({ onClick }) => {
+const TrickOrTreatButton = ({ onClick, completedPuzzles = 0, totalPuzzles = 5 }) => {
   const [isHovered, setIsHovered] = useState(false)
   const [clicks, setClicks] = useState(0)
 
@@ -9,6 +9,8 @@ const TrickOrTreatButton = ({ onClick }) => {
     setClicks(clicks + 1)
     onClick()
   }
+
+  const progressPercent = (completedPuzzles / totalPuzzles) * 100
 
   return (
     <motion.div
@@ -49,7 +51,7 @@ const TrickOrTreatButton = ({ onClick }) => {
 
         {/* Button text */}
         <span className="relative z-10 drop-shadow-lg">
-          🎃 Trick or Treat? 🎃
+          {completedPuzzles < totalPuzzles ? '🧩 Solve Puzzle 🧩' : '🎃 Encounter Monster 🎃'}
         </span>
 
         {/* Particle burst on hover */}
@@ -98,7 +100,7 @@ const TrickOrTreatButton = ({ onClick }) => {
         </motion.div>
       </motion.button>
 
-      {/* Click counter */}
+      {/* Click counter and puzzle progress */}
       {clicks > 0 && (
         <motion.div
           className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-80 px-4 py-2 rounded-full border-2 border-pumpkin"
@@ -112,6 +114,26 @@ const TrickOrTreatButton = ({ onClick }) => {
         </motion.div>
       )}
 
+      {/* Puzzle progress bar */}
+      <motion.div
+        className="absolute -top-24 left-1/2 transform -translate-x-1/2 w-64 bg-black bg-opacity-80 px-4 py-3 rounded-lg border-2 border-toxic"
+        initial={{ scale: 0, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+      >
+        <div className="flex justify-between items-center mb-1">
+          <span className="font-creepster text-toxic text-xs">Puzzles Solved</span>
+          <span className="font-fredericka text-ghost text-xs">{completedPuzzles}/{totalPuzzles}</span>
+        </div>
+        <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
+          <motion.div
+            className="h-full bg-gradient-to-r from-toxic to-pumpkin"
+            initial={{ width: 0 }}
+            animate={{ width: `${progressPercent}%` }}
+            transition={{ duration: 0.5 }}
+          />
+        </div>
+      </motion.div>
+
       {/* Floating instruction */}
       <motion.div
         className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 text-center"
@@ -122,7 +144,9 @@ const TrickOrTreatButton = ({ onClick }) => {
         transition={{ duration: 2, repeat: Infinity }}
       >
         <p className="font-fredericka text-ghost text-sm">
-          Click to summon a creature...
+          {completedPuzzles < totalPuzzles 
+            ? 'Click to challenge a monster...' 
+            : 'All puzzles solved! Encounter monsters freely...'}
         </p>
       </motion.div>
     </motion.div>
